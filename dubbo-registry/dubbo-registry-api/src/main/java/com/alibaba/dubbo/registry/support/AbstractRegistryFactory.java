@@ -83,8 +83,8 @@ public abstract class AbstractRegistryFactory implements RegistryFactory {
     @Override
     public Registry getRegistry(URL url) {
         url = url.setPath(RegistryService.class.getName())
-                .addParameter(Constants.INTERFACE_KEY, RegistryService.class.getName())
-                .removeParameters(Constants.EXPORT_KEY, Constants.REFER_KEY);
+                .addParameter(Constants.INTERFACE_KEY, RegistryService.class.getName())  // 添加参数interface=com.alibaba.dubbo.registry.RegistryService
+                .removeParameters(Constants.EXPORT_KEY, Constants.REFER_KEY);  // 移除参数export、refer
         String key = url.toServiceString();
         // Lock the registry access process to ensure a single instance of the registry
         LOCK.lock();

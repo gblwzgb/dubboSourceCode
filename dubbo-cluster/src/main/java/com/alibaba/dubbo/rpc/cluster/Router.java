@@ -31,6 +31,7 @@ import java.util.List;
  * @see com.alibaba.dubbo.rpc.cluster.Cluster#join(Directory)
  * @see com.alibaba.dubbo.rpc.cluster.Directory#list(Invocation)
  */
+// 集群容错之---服务路由
 public interface Router extends Comparable<Router>{
 
     /**

@@ -30,6 +30,8 @@ import java.util.List;
  *
  * @see com.alibaba.dubbo.rpc.cluster.Cluster#join(Directory)
  */
+// 集群容错之---服务目录
+// http://dubbo.apache.org/zh-cn/docs/source_code_guide/directory.html
 public interface Directory<T> extends Node {
 
     /**

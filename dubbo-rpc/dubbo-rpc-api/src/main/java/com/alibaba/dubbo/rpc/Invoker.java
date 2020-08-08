@@ -25,6 +25,7 @@ import com.alibaba.dubbo.common.Node;
  * @see com.alibaba.dubbo.rpc.InvokerListener
  * @see com.alibaba.dubbo.rpc.protocol.AbstractInvoker
  */
+// 内部通过负载均衡算法，调用某个Invoker
 public interface Invoker<T> extends Node {
 
     /**

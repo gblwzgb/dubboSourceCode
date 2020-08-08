@@ -33,11 +33,15 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.invoker = handler;
     }
 
+    // Consumer对代理对象的调用，会被转发到这个类
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 调用的方法名
         String methodName = method.getName();
+        // 调用的方法参数类型
         Class<?>[] parameterTypes = method.getParameterTypes();
         if (method.getDeclaringClass() == Object.class) {
+            // 如果是Object的方法，直接调用
             return method.invoke(invoker, args);
         }
         if ("toString".equals(methodName) && parameterTypes.length == 0) {
@@ -49,6 +53,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if ("equals".equals(methodName) && parameterTypes.length == 1) {
             return invoker.equals(args[0]);
         }
+        // 将调用的方法、入参，封装成RpcInvocation
+        // 这里的invoker一般情况下是FailoverClusterInvoker
         return invoker.invoke(new RpcInvocation(method, args)).recreate();
     }
 

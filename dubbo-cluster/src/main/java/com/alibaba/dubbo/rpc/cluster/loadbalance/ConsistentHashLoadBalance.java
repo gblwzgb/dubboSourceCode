@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
  * ConsistentHashLoadBalance
  *
  */
+// 一致性hash算法
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
     private final ConcurrentMap<String, ConsistentHashSelector<?>> selectors = new ConcurrentHashMap<String, ConsistentHashSelector<?>>();

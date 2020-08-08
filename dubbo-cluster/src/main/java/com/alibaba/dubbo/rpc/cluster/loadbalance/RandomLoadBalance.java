@@ -27,6 +27,7 @@ import java.util.Random;
  * random load balance.
  *
  */
+// 随机负载均衡
 public class RandomLoadBalance extends AbstractLoadBalance {
 
     public static final String NAME = "random";
@@ -36,16 +37,21 @@ public class RandomLoadBalance extends AbstractLoadBalance {
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
         int length = invokers.size(); // Number of invokers
+        // 总权重
         int totalWeight = 0; // The sum of weights
+        // 每个invoker的权重都一样吗？
         boolean sameWeight = true; // Every invoker has the same weight?
         for (int i = 0; i < length; i++) {
             int weight = getWeight(invokers.get(i), invocation);
+            // 累计总权重
             totalWeight += weight; // Sum
             if (sameWeight && i > 0
                     && weight != getWeight(invokers.get(i - 1), invocation)) {
+                // 当前invoker的权重，和前一个invoker比较，不同则标记
                 sameWeight = false;
             }
         }
+        // 如果权重不同，则按照权重，demo见最下面注释
         if (totalWeight > 0 && !sameWeight) {
             // If (not every invoker has the same weight & at least one invoker's weight>0), select randomly based on totalWeight.
             int offset = random.nextInt(totalWeight);
@@ -58,7 +64,16 @@ public class RandomLoadBalance extends AbstractLoadBalance {
             }
         }
         // If all invokers have the same weight value or totalWeight=0, return evenly.
+        // 如果所有的invokers的权重都一样，或者总权重为0，则随机分配
         return invokers.get(random.nextInt(length));
     }
 
 }
+
+/**
+ * 假设三个invoker，权重分别为3、2、1
+ * random.nextInt(totalWeight)
+ * 1：为0、1、2时，会取到第一个invoker
+ * 2：为3、4时，会取到第二个invoker
+ * 3：为5时，会取到第三个invoker
+ */

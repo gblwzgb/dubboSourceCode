@@ -26,6 +26,7 @@ import java.util.Map;
  *
  * @export
  */
+// 注册中心配置
 public class RegistryConfig extends AbstractConfig {
 
     public static final String NO_AVAILABLE = "N/A";

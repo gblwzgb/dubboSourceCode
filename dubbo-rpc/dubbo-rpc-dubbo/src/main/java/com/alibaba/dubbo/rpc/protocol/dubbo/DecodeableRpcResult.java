@@ -71,8 +71,9 @@ public class DecodeableRpcResult extends RpcResult implements Codec, Decodeable 
 
     @Override
     public Object decode(Channel channel, InputStream input) throws IOException {
+        // 通过serializationType选择序列化器
         ObjectInput in = CodecSupport.getSerialization(channel.getUrl(), serializationType)
-                .deserialize(channel.getUrl(), input);
+                .deserialize(channel.getUrl(), input);  // 解码
         
         byte flag = in.readByte();
         switch (flag) {
@@ -80,7 +81,9 @@ public class DecodeableRpcResult extends RpcResult implements Codec, Decodeable 
                 break;
             case DubboCodec.RESPONSE_VALUE:
                 try {
+                    // 获取返回值
                     Type[] returnType = RpcUtils.getReturnTypes(invocation);
+                    // 设置对象
                     setValue(returnType == null || returnType.length == 0 ? in.readObject() :
                             (returnType.length == 1 ? in.readObject((Class<?>) returnType[0])
                                     : in.readObject((Class<?>) returnType[0], returnType[1])));

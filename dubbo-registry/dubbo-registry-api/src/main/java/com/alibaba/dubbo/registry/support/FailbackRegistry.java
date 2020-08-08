@@ -189,10 +189,13 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     public void subscribe(URL url, NotifyListener listener) {
+        // 添加订阅到父类的缓存中
         super.subscribe(url, listener);
+        // 移除失败的订阅
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side
+            // 子类实现，就是订阅一个变动通知
             doSubscribe(url, listener);
         } catch (Exception e) {
             Throwable t = e;

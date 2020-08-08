@@ -190,7 +190,9 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     }
                     List<URL> urls = UrlUtils.parseURLs(address, map);
                     for (URL url : urls) {
+                        // 连接注册中心，使用什么协议？默认dubbo，生产一般会配成ZooKeeper
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
+                        // 设置url的协议为：registry
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
                         if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
                                 || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {

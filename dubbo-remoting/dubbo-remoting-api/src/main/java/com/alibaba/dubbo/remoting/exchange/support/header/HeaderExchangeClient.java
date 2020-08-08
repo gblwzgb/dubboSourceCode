@@ -40,6 +40,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * DefaultMessageClient
  */
+/*
+* HeaderExchangeClient 中很多方法只有一行代码，即调用 HeaderExchangeChannel 对象的同签名方法。
+* 那 HeaderExchangeClient 有什么用处呢？答案是封装了一些关于心跳检测的逻辑。
+*/
 public class HeaderExchangeClient implements ExchangeClient {
 
     private static final Logger logger = LoggerFactory.getLogger(HeaderExchangeClient.class);

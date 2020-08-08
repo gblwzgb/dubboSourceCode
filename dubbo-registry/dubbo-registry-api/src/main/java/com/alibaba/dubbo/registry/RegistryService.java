@@ -26,6 +26,7 @@ import java.util.List;
  * @see com.alibaba.dubbo.registry.Registry
  * @see com.alibaba.dubbo.registry.RegistryFactory#getRegistry(URL)
  */
+// 用于注册、注销、订阅、取消订阅，查询
 public interface RegistryService {
 
     /**

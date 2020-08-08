@@ -68,6 +68,7 @@ public class Transporters {
         if (handlers == null || handlers.length == 0) {
             handler = new ChannelHandlerAdapter();
         } else if (handlers.length == 1) {
+            // 走这里
             handler = handlers[0];
         } else {
             handler = new ChannelHandlerDispatcher(handlers);

@@ -273,7 +273,7 @@ public class LoadBalanceTest {
         int sumInvoker1 = 0;
         int sumInvoker2 = 0;
         int sumInvoker3 = 0;
-        int loop = 1000;
+        int loop = 10000;
         RandomLoadBalance lb = new RandomLoadBalance();
         for (int i = 0; i < loop; i++) {
             Invoker selected = lb.select(weightInvokers, null, weightTestInvocation);

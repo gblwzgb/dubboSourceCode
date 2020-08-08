@@ -70,6 +70,7 @@ public class DubboProtocol extends AbstractProtocol {
     //consumer side export a stub service for dispatching event
     //servicekey-stubmethods
     private final ConcurrentMap<String, String> stubServiceMethodsMap = new ConcurrentHashMap<String, String>();
+    // 客户端connect和服务端bind，都会用到这个
     private ExchangeHandler requestHandler = new ExchangeHandlerAdapter() {
 
         @Override
@@ -339,12 +340,14 @@ public class DubboProtocol extends AbstractProtocol {
         return invoker;
     }
 
+    // 通过url，获取ExchangeClient，底层是nettyClient、minaClient啥的
     private ExchangeClient[] getClients(URL url) {
         // whether to share connection
         boolean service_share_connect = false;
         int connections = url.getParameter(Constants.CONNECTIONS_KEY, 0);
         // if not configured, connection is shared, otherwise, one connection for one service
         if (connections == 0) {
+            // 默认一个连接
             service_share_connect = true;
             connections = 1;
         }
@@ -352,6 +355,7 @@ public class DubboProtocol extends AbstractProtocol {
         ExchangeClient[] clients = new ExchangeClient[connections];
         for (int i = 0; i < clients.length; i++) {
             if (service_share_connect) {
+                // 获取到一个ReferenceCountExchangeClient -> HeaderExchangeClient -> NettyClient
                 clients[i] = getSharedClient(url);
             } else {
                 clients[i] = initClient(url);
@@ -381,8 +385,11 @@ public class DubboProtocol extends AbstractProtocol {
                 return referenceClientMap.get(key);
             }
 
+            // 创建数据交换的client
             ExchangeClient exchangeClient = initClient(url);
+            // 封装成ReferenceCountExchangeClient
             client = new ReferenceCountExchangeClient(exchangeClient, ghostClientMap);
+            // 放到缓存中
             referenceClientMap.put(key, client);
             ghostClientMap.remove(key);
             locks.remove(key);
@@ -396,14 +403,18 @@ public class DubboProtocol extends AbstractProtocol {
     private ExchangeClient initClient(URL url) {
 
         // client type setting.
+        // 默认使用netty
         String str = url.getParameter(Constants.CLIENT_KEY, url.getParameter(Constants.SERVER_KEY, Constants.DEFAULT_REMOTING_CLIENT));
 
+        // 默认使用dubbo编解码
         url = url.addParameter(Constants.CODEC_KEY, DubboCodec.NAME);
         // enable heartbeat by default
+        // 默认60秒心跳
         url = url.addParameterIfAbsent(Constants.HEARTBEAT_KEY, String.valueOf(Constants.DEFAULT_HEARTBEAT));
 
         // BIO is not allowed since it has severe performance issue.
         if (str != null && str.length() > 0 && !ExtensionLoader.getExtensionLoader(Transporter.class).hasExtension(str)) {
+            // 没有这个累计的Transporter，报错
             throw new RpcException("Unsupported client type: " + str + "," +
                     " supported client type is " + StringUtils.join(ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions(), " "));
         }
@@ -414,6 +425,7 @@ public class DubboProtocol extends AbstractProtocol {
             if (url.getParameter(Constants.LAZY_CONNECT_KEY, false)) {
                 client = new LazyConnectExchangeClient(url, requestHandler);
             } else {
+                // 默认是HeaderExchangeClient，内含建立好连接的NettyClient（默认是netty）
                 client = Exchangers.connect(url, requestHandler);
             }
         } catch (RemotingException e) {

@@ -29,12 +29,14 @@ public class ZookeeperRegistryFactory extends AbstractRegistryFactory {
 
     private ZookeeperTransporter zookeeperTransporter;
 
+    // DI注入的，是一个代理类
     public void setZookeeperTransporter(ZookeeperTransporter zookeeperTransporter) {
         this.zookeeperTransporter = zookeeperTransporter;
     }
 
     @Override
     public Registry createRegistry(URL url) {
+        // 构造方法内部会通过zookeeperTransporter连接到zk，并注册相应的监听器
         return new ZookeeperRegistry(url, zookeeperTransporter);
     }
 

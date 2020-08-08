@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
  * @see ExtensionLoader
  * @see URL
  */
+// http://dubbo.apache.org/zh-cn/docs/source_code_guide/adaptive-extension.html
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

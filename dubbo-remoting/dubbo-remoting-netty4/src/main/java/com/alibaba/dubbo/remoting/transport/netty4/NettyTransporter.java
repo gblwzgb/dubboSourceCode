@@ -34,6 +34,7 @@ public class NettyTransporter implements Transporter {
 
     @Override
     public Client connect(URL url, ChannelHandler listener) throws RemotingException {
+        // 内部会建立好netty的连接
         return new NettyClient(url, listener);
     }
 

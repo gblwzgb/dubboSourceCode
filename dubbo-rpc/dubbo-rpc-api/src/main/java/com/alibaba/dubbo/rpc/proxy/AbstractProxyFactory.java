@@ -39,20 +39,26 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
         Class<?>[] interfaces = null;
         String config = invoker.getUrl().getParameter("interfaces");
         if (config != null && config.length() > 0) {
+            // 逗号分隔
             String[] types = Constants.COMMA_SPLIT_PATTERN.split(config);
             if (types != null && types.length > 0) {
                 interfaces = new Class<?>[types.length + 2];
+                // 填充一个Invoker接口
                 interfaces[0] = invoker.getInterface();
+                // 填充一个EchoService接口
                 interfaces[1] = EchoService.class;
                 for (int i = 0; i < types.length; i++) {
+                    // 遍历填充接口
                     interfaces[i + 1] = ReflectUtils.forName(types[i]);
                 }
             }
         }
         if (interfaces == null) {
+            // 默认都会有Invoker、EchoService接口
             interfaces = new Class<?>[]{invoker.getInterface(), EchoService.class};
         }
 
+        // 泛化
         if (!invoker.getInterface().equals(GenericService.class) && generic) {
             int len = interfaces.length;
             Class<?>[] temp = interfaces;
@@ -61,6 +67,7 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
             interfaces[len] = GenericService.class;
         }
 
+        // 默认JavassistProxyFactory
         return getProxy(invoker, interfaces);
     }
 

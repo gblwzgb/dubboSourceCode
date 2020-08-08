@@ -30,12 +30,15 @@ import java.util.Map;
  *
  * @serial Don't change the class name and properties.
  */
+// 做为Invoker.invoke方法的入参，封装一些调用的信息
 public class RpcInvocation implements Invocation, Serializable {
 
     private static final long serialVersionUID = -4355285085441097045L;
 
+    // 调用的方法名
     private String methodName;
 
+    // 调用时传的入参
     private Class<?>[] parameterTypes;
 
     private Object[] arguments;

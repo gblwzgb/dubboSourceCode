@@ -29,6 +29,7 @@ import com.alibaba.dubbo.rpc.RpcResult;
 
 import java.io.IOException;
 
+// 在DubboCodec之上做了增强，增加了统计读取字节数的功能
 public final class DubboCountCodec implements Codec2 {
 
     private DubboCodec codec = new DubboCodec();

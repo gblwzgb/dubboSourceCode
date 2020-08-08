@@ -37,13 +37,16 @@ public abstract class AbstractLoadBalance implements LoadBalance {
 
     @Override
     public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        // 这个判断是所有子类通用的
         if (invokers == null || invokers.isEmpty())
             return null;
         if (invokers.size() == 1)
             return invokers.get(0);
+        // 由具体的负载均衡算法类执行
         return doSelect(invokers, url, invocation);
     }
 
+    // 模板模式，子类实现
     protected abstract <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation);
 
     protected int getWeight(Invoker<?> invoker, Invocation invocation) {
