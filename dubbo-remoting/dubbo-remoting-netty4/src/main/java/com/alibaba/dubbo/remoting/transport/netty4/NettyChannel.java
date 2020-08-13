@@ -41,6 +41,7 @@ final class NettyChannel extends AbstractChannel {
 
     private static final ConcurrentMap<Channel, NettyChannel> channelMap = new ConcurrentHashMap<Channel, NettyChannel>();
 
+    // netty的channel
     private final Channel channel;
 
     private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
@@ -98,7 +99,7 @@ final class NettyChannel extends AbstractChannel {
         boolean success = true;
         int timeout = 0;
         try {
-            /** 发送数据 */
+            /** 发送数据，进入pipeline */
             ChannelFuture future = channel.writeAndFlush(message);
             if (sent) {
                 timeout = getUrl().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
