@@ -27,6 +27,10 @@ import java.io.OutputStream;
 /**
  * Serialization. (SPI, Singleton, ThreadSafe)
  */
+
+/*
+ * serialize 数据序列化层：可复用的一些工具，扩展接口为 Serialization, ObjectInput, ObjectOutput, ThreadPool
+ */
 @SPI("hessian2")
 public interface Serialization {
 

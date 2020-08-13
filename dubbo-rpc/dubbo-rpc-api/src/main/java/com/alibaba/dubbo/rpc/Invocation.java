@@ -26,6 +26,10 @@ import java.util.Map;
  * @see com.alibaba.dubbo.rpc.RpcInvocation
  */
 // 调用信息
+
+/*
+ * Invocation 是会话域，它持有调用过程中的变量，比如方法名，参数等。
+ */
 public interface Invocation {
 
     /**

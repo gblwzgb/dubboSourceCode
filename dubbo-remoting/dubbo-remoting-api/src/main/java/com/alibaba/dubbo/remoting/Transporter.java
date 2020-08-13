@@ -29,6 +29,13 @@ import com.alibaba.dubbo.common.extension.SPI;
  *
  * @see com.alibaba.dubbo.remoting.Transporters
  */
+// 传输层，负责建立client、server之间的连接
+// 1、服务端的端口绑定
+// 2、客户端连接服务端
+
+/*
+ * transport 网络传输层：抽象 mina 和 netty 为统一接口，以 Message 为中心，扩展接口为 Channel, Transporter, Client, Server, Codec
+ */
 @SPI("netty")
 public interface Transporter {
 

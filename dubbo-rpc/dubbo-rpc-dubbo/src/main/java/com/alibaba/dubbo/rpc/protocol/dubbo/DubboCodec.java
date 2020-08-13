@@ -59,12 +59,14 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
     public static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
     private static final Logger log = LoggerFactory.getLogger(DubboCodec.class);
 
+    // 解析消息体，先从header中取出一些信息，用于必要的判断
+    // 这里header没有封装成一个对象，而是通过数组来的。。
     @Override
     protected Object decodeBody(Channel channel, InputStream is, byte[] header) throws IOException {
         byte flag = header[2], proto = (byte) (flag & SERIALIZATION_MASK);
         // get request id.
         long id = Bytes.bytes2long(header, 4);
-        if ((flag & FLAG_REQUEST) == 0) {
+        if ((flag & FLAG_REQUEST) == 0) {  // 是一个response，客户端用
             // decode response.
             Response res = new Response(id);
             if ((flag & FLAG_EVENT) != 0) {
@@ -86,7 +88,8 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
                                 Constants.DECODE_IN_IO_THREAD_KEY,
                                 Constants.DEFAULT_DECODE_IN_IO_THREAD)) {
                             result = new DecodeableRpcResult(channel, res, is,
-                                    (Invocation) getRequestData(id), proto);
+                                    (Invocation) getRequestData(id), proto);  // 获取reqId获取response对应的request
+                            // 解码数据包
                             result.decode();
                         } else {
                             result = new DecodeableRpcResult(channel, res,
@@ -107,7 +110,7 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
                 res.setErrorMessage(StringUtils.toString(t));
             }
             return res;
-        } else {
+        } else {  // 是一个request，服务端用
             // decode request.
             Request req = new Request(id);
             req.setVersion(Version.getProtocolVersion());

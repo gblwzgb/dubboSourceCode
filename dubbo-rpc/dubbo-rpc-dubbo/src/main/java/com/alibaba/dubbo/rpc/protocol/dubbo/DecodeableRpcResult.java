@@ -69,6 +69,7 @@ public class DecodeableRpcResult extends RpcResult implements Codec, Decodeable 
         throw new UnsupportedOperationException();
     }
 
+    // 对用户的数据包进行解码
     @Override
     public Object decode(Channel channel, InputStream input) throws IOException {
         // 通过serializationType选择序列化器

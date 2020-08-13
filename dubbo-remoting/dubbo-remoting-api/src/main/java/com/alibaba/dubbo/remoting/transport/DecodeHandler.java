@@ -26,6 +26,11 @@ import com.alibaba.dubbo.remoting.RemotingException;
 import com.alibaba.dubbo.remoting.exchange.Request;
 import com.alibaba.dubbo.remoting.exchange.Response;
 
+// 解码消息体的，使用Serialization。
+// 这里不要和DubboCodec弄混淆。DubboCodec是给Netty用的，用于将消息按相同的方式进行编解码。
+// - 消息头、消息体等
+// 而这里是使用Serialization对解码之后的消息体，再次进行解码。
+// - 纯消息体
 public class DecodeHandler extends AbstractChannelHandlerDelegate {
 
     private static final Logger log = LoggerFactory.getLogger(DecodeHandler.class);

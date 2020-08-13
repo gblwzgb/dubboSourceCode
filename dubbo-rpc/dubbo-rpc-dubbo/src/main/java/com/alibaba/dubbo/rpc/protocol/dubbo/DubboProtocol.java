@@ -75,8 +75,10 @@ public class DubboProtocol extends AbstractProtocol {
 
         @Override
         public Object reply(ExchangeChannel channel, Object message) throws RemotingException {
+            // 回应客户端的请求，所以必须是Invocation类型
             if (message instanceof Invocation) {
                 Invocation inv = (Invocation) message;
+                // 获取服务端的proxy代理对象
                 Invoker<?> invoker = getInvoker(channel, inv);
                 // need to consider backward-compatibility if it's a callback
                 if (Boolean.TRUE.toString().equals(inv.getAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
@@ -101,7 +103,9 @@ public class DubboProtocol extends AbstractProtocol {
                         return null;
                     }
                 }
+                // 放在ThreadLocal中，主要用于打日志
                 RpcContext.getContext().setRemoteAddress(channel.getRemoteAddress());
+                // 反射调用服务端的真实代码
                 return invoker.invoke(inv);
             }
             throw new RemotingException(channel, "Unsupported request: "

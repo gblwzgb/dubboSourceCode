@@ -17,10 +17,7 @@
 package com.alibaba.dubbo.remoting.exchange.support.header;
 
 import com.alibaba.dubbo.common.URL;
-import com.alibaba.dubbo.remoting.ChannelHandler;
-import com.alibaba.dubbo.remoting.Client;
-import com.alibaba.dubbo.remoting.RemotingException;
-import com.alibaba.dubbo.remoting.Transporters;
+import com.alibaba.dubbo.remoting.*;
 import com.alibaba.dubbo.remoting.exchange.ExchangeClient;
 import com.alibaba.dubbo.remoting.exchange.ExchangeHandler;
 import com.alibaba.dubbo.remoting.exchange.ExchangeServer;
@@ -38,16 +35,20 @@ public class HeaderExchanger implements Exchanger {
 
     @Override
     public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
-        // 处理器链，DecodeHandler -> HeaderExchangeHandler -> DubboProtocol.requestHandler(匿名类)
-        ChannelHandler decodeHandler = new DecodeHandler(new HeaderExchangeHandler(handler));
+        // 处理器链，DecodeHandler -> HeaderExchangeHandler -> DubboProtocol.requestHandler(匿名类，处理request请求)
+        ChannelHandler handler1 = new DecodeHandler(new HeaderExchangeHandler(handler));
         // 获取一个建立好连接的client
-        Client client = Transporters.connect(url, decodeHandler);
+        Client client = Transporters.connect(url, handler1);
         return new HeaderExchangeClient(client, true);
     }
 
     @Override
     public ExchangeServer bind(URL url, ExchangeHandler handler) throws RemotingException {
-        return new HeaderExchangeServer(Transporters.bind(url, new DecodeHandler(new HeaderExchangeHandler(handler))));
+        // 处理器链，DecodeHandler -> HeaderExchangeHandler -> DubboProtocol.requestHandler(匿名类，处理request请求)
+        ChannelHandler handler1 = new DecodeHandler(new HeaderExchangeHandler(handler));
+        // 绑定到端口上，等待客户端的连接
+        Server server = Transporters.bind(url, handler1);
+        return new HeaderExchangeServer(server);
     }
 
 }

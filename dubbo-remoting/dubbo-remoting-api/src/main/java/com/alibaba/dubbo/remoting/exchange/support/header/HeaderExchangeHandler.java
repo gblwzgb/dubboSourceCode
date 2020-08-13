@@ -94,6 +94,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         Object msg = req.getData();
         try {
             // handle data.
+            /** 调用服务端本地的接口 */
             Object result = handler.reply(channel, msg);
             res.setStatus(Response.OK);
             res.setResult(result);
@@ -145,6 +146,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         }
         if (message instanceof Request) {
             Request request = (Request) message;
+            // 设置已发送
             DefaultFuture.sent(channel, request);
         }
         if (exception != null) {

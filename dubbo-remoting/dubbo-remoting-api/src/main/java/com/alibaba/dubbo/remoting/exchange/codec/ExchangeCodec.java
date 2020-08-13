@@ -136,15 +136,18 @@ public class ExchangeCodec extends TelnetCodec {
         }
         // check length.
         if (readable < HEADER_LENGTH) {
+            // 长度不足，发生了粘包/拆包
             return DecodeResult.NEED_MORE_INPUT;
         }
 
         // get data length.
+        // 数据包的长度
         int len = Bytes.bytes2int(header, 12);
         checkPayload(channel, len);
 
         int tt = len + HEADER_LENGTH;
         if (readable < tt) {
+            // 长度不足，发生了粘包/拆包
             return DecodeResult.NEED_MORE_INPUT;
         }
 
@@ -152,6 +155,7 @@ public class ExchangeCodec extends TelnetCodec {
         ChannelBufferInputStream is = new ChannelBufferInputStream(buffer, len);
 
         try {
+            // 解析消息体
             return decodeBody(channel, is, header);
         } finally {
             if (is.available() > 0) {

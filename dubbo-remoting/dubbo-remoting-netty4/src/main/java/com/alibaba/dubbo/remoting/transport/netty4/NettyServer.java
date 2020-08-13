@@ -85,6 +85,8 @@ public class NettyServer extends AbstractServer implements Server {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
+                        // 入站顺序为：HeadContext -> decoder -> nettyServerHandler
+                        // 出站顺序为：TailContext -> nettyServerHandler -> encoder -> HeadContext（底层写）
                         ch.pipeline()//.addLast("logging",new LoggingHandler(LogLevel.INFO))//for debug
                                 .addLast("decoder", adapter.getDecoder())
                                 .addLast("encoder", adapter.getEncoder())
@@ -93,6 +95,7 @@ public class NettyServer extends AbstractServer implements Server {
                 });
         // bind
         ChannelFuture channelFuture = bootstrap.bind(getBindAddress());
+        // 同步等待，不受中断影响
         channelFuture.syncUninterruptibly();
         channel = channelFuture.channel();
 

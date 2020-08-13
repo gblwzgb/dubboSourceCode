@@ -30,6 +30,12 @@ import com.alibaba.dubbo.rpc.cluster.support.FailoverCluster;
  *
  */
 // 集群容错之---集群
+
+/*
+ * cluster 路由层：封装多个提供者的路由及负载均衡，并桥接注册中心，以 Invoker 为中心，扩展接口为 Cluster, Directory, Router, LoadBalance
+ *
+ * Cluster 的目的是将多个 Invoker 伪装成一个 Invoker，这样其它人只要关注 Protocol 层 Invoker 即可，加上 Cluster 或者去掉 Cluster 对其它层都不会造成影响，因为只有一个提供者时，是不需要 Cluster 的。
+ */
 @SPI(FailoverCluster.NAME)
 public interface Cluster {
 

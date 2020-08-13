@@ -102,9 +102,11 @@ public class NettyServerHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        // 转移给下一个处理器，encoder（netty的流程）
         super.write(ctx, msg, promise);
         NettyChannel channel = NettyChannel.getOrAddChannel(ctx.channel(), url, handler);
         try {
+            // dubbo内部的handler链
             handler.sent(channel, msg);
         } finally {
             NettyChannel.removeChannelIfDisconnected(ctx.channel());
