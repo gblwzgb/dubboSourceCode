@@ -32,6 +32,7 @@ import java.util.List;
  */
 // 集群容错之---服务目录
 // http://dubbo.apache.org/zh-cn/docs/source_code_guide/directory.html
+    // list 方法内部会使用 Router，来过滤出符合一定条件的 Invoker 列表
 public interface Directory<T> extends Node {
 
     /**

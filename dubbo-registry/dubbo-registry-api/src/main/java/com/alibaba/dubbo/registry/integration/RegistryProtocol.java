@@ -59,6 +59,15 @@ import static com.alibaba.dubbo.common.Constants.CHECK_KEY;
  * RegistryProtocol
  *
  */
+
+/**
+ * 当 consumer 使用这个类时：
+ * 创建 RegistryDirectory，订阅变动，然后使用 Cluster 集群一下。
+ *
+ *
+ * 当 provider 使用这个类时：
+ * 先把服务端的端口打开，然后注册服务信息到注册中心上。
+ */
 public class RegistryProtocol implements Protocol {
 
     private final static Logger logger = LoggerFactory.getLogger(RegistryProtocol.class);
@@ -67,6 +76,7 @@ public class RegistryProtocol implements Protocol {
     //To solve the problem of RMI repeated exposure port conflicts, the services that have been exposed are no longer exposed.
     //providerurl <--> exporter
     private final Map<String, ExporterChangeableWrapper<?>> bounds = new ConcurrentHashMap<String, ExporterChangeableWrapper<?>>();
+    // SPI 注入的自适应的 Cluster
     private Cluster cluster;
     private Protocol protocol;
     // 代理类，从URL的protocol参数来取具体的注册中心工厂
@@ -104,6 +114,7 @@ public class RegistryProtocol implements Protocol {
         this.cluster = cluster;
     }
 
+    // 这里同步 SPI 的注入功能，注入了一个自适应的代理类
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
     }
@@ -133,6 +144,7 @@ public class RegistryProtocol implements Protocol {
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
         //export invoker
+        /** 做本地暴露，内部会激活服务端的通信流程 */
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker);
 
         URL registryUrl = getRegistryUrl(originInvoker);
@@ -147,6 +159,7 @@ public class RegistryProtocol implements Protocol {
         ProviderConsumerRegTable.registerProvider(originInvoker, registryUrl, registeredProviderUrl);
 
         if (register) {
+            /** 注册服务信息到注册中心上 */
             register(registryUrl, registeredProviderUrl);
             ProviderConsumerRegTable.getProviderWrapper(originInvoker).setReg(true);
         }
@@ -163,13 +176,17 @@ public class RegistryProtocol implements Protocol {
 
     @SuppressWarnings("unchecked")
     private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker) {
+        // 尝试从缓存中获取
         String key = getCacheKey(originInvoker);
         ExporterChangeableWrapper<T> exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
         if (exporter == null) {
             synchronized (bounds) {
+                // 获取锁后需要再次检查
                 exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
                 if (exporter == null) {
+                    // 这里 getProviderUrl 会解析出 dubbo 暴露所使用的 URL
                     final Invoker<?> invokerDelegete = new InvokerDelegete<T>(originInvoker, getProviderUrl(originInvoker));
+                    // 自适应的代理类，找到了 DubboProtocol(默认是这个，可以指定其他的。)
                     exporter = new ExporterChangeableWrapper<T>((Exporter<T>) protocol.export(invokerDelegete), originInvoker);
                     bounds.put(key, exporter);
                 }
@@ -298,7 +315,7 @@ public class RegistryProtocol implements Protocol {
     }
 
     private <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url) {
-        // 注册表目录
+        // 注册中心目录
         RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
         directory.setRegistry(registry);
         directory.setProtocol(protocol);
@@ -311,13 +328,13 @@ public class RegistryProtocol implements Protocol {
             registry.register(registeredConsumerUrl);
             directory.setRegisteredConsumerUrl(registeredConsumerUrl);
         }
-        // 注册订阅
+        // 注册节点变动的通知回调
         directory.subscribe(subscribeUrl.addParameter(Constants.CATEGORY_KEY,
                 Constants.PROVIDERS_CATEGORY
                         + "," + Constants.CONFIGURATORS_CATEGORY
                         + "," + Constants.ROUTERS_CATEGORY));
 
-        // 默认FailoverClusterInvoker
+        // 默认使用 FailoverCluster 创建一个 FailoverClusterInvoker
         Invoker invoker = cluster.join(directory);
         ProviderConsumerRegTable.registerConsumer(invoker, url, subscribeUrl, directory);
         return invoker;

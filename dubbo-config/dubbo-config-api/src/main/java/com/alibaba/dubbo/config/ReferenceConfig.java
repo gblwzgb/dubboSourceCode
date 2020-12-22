@@ -64,13 +64,13 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
 
     private static final long serialVersionUID = -5864351140409987595L;
 
-    // 默认DubboProtocol
+    // 自适应的，会根据参数选择实现
     private static final Protocol refprotocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
 
-    // 默认FailoverCluster
+    // 自适应的，会根据参数选择实现
     private static final Cluster cluster = ExtensionLoader.getExtensionLoader(Cluster.class).getAdaptiveExtension();
 
-    // SPI获取，默认JavassistProxyFactory
+    // SPI获取，自适应的，会根据参数选择实现，没设置默认JavassistProxyFactory
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
     private final List<URL> urls = new ArrayList<URL>();
     // interface name
@@ -388,7 +388,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                     }
                 }
             } else { // assemble URL from register center's configuration
-                // 返回注册中心的URL列表，URL的协议为registry
+                // 返回注册中心的URL列表，URL的 protocol 属性为 registry
                 List<URL> us = loadRegistries(false);
                 if (us != null && !us.isEmpty()) {
                     for (URL u : us) {
@@ -407,21 +407,25 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             // 单个注册中心或服务提供者(服务直连，下同)
             if (urls.size() == 1) {
                 // 只有一个，不用集群模式了
+                /** RegistryProtocol，连接注册中心，订阅变动、注册回调 */
+                // 这里面会有 RegistryDirectory
                 invoker = refprotocol.refer(interfaceClass, urls.get(0));
-            } else {  // 多个注册中心或多个服务提供者，或者两者混合
+            } else {  // 多个注册中心
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
+                // 向多个注册中心注册，多个注册中心的地址使用 | 分隔。
+                // 用，分隔的算一个注册中心。
                 for (URL url : urls) {
-                    /** RegistryProtocol，连接注册中心，订阅变动、注册回调 */
                     invokers.add(refprotocol.refer(interfaceClass, url));
                     if (Constants.REGISTRY_PROTOCOL.equals(url.getProtocol())) {
                         registryURL = url; // use last registry url
                     }
                 }
+                // 多个注册完后，使用静态目录 StaticDirectory 来做成集群。内部是 RegistryDirectory 来做的集群。。
                 if (registryURL != null) { // registry url is available
                     // use AvailableCluster only when register's cluster is available
                     URL u = registryURL.addParameter(Constants.CLUSTER_KEY, AvailableCluster.NAME);
-                    // 因为没设置@Adaptive的值，所以会去扩展参数里的cluster属性，所以这里是AvailableCluster
+                    // 因为没设置@Adaptive的值，所以会取扩展参数里的cluster属性，所以这里是 AvailableCluster
                     invoker = cluster.join(new StaticDirectory(u, invokers));
                 } else { // not a registry url
                     invoker = cluster.join(new StaticDirectory(invokers));
@@ -445,7 +449,7 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             logger.info("Refer dubbo service " + interfaceClass.getName() + " from url " + invoker.getUrl());
         }
         // create service proxy
-        // 默认情况下invoker是FailoverClusterInvoker
+        // 默认情况下invoker是FailoverClusterInvoker，用户的真实请求，会被代理到 Invoker 上。
         return (T) proxyFactory.getProxy(invoker);
     }
 

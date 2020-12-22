@@ -110,6 +110,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
             String address = ConfigUtils.getProperty("dubbo.registry.address");
             if (address != null && address.length() > 0) {
                 registries = new ArrayList<RegistryConfig>();
+                // 使用 | 分隔
                 String[] as = address.split("\\s*[|]+\\s*");
                 for (String a : as) {
                     RegistryConfig registryConfig = new RegistryConfig();
@@ -190,12 +191,15 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     }
                     List<URL> urls = UrlUtils.parseURLs(address, map);
                     for (URL url : urls) {
-                        // 连接注册中心，使用什么协议？默认dubbo，生产一般会配成ZooKeeper
+                        // 连接注册中心，使用什么协议？默认dubbo，生产一般会配成ZooKeeper，通过 dubbo.registry.protocol 配置
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
                         // 设置url的协议为：registry
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
+                        // 1、是生产者，且 dubbo.registry.register 是 true，本地环境调试的时候， 不想影响到测试环境时，会设置成 false。
                         if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
+                                // 2、或者是消费者
                                 || (!provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
+                            // 注册中心的地址。
                             registryList.add(url);
                         }
                     }

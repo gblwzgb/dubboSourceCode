@@ -35,6 +35,7 @@ import java.util.List;
  * <a href="http://en.wikipedia.org/wiki/Fail-safe">Fail-safe</a>
  *
  */
+// 失败安全，调用失败后吃掉异常，不抛异常。
 public class FailsafeClusterInvoker<T> extends AbstractClusterInvoker<T> {
     private static final Logger logger = LoggerFactory.getLogger(FailsafeClusterInvoker.class);
 

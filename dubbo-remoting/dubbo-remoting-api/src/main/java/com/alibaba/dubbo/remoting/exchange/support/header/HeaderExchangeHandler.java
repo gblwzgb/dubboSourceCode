@@ -167,6 +167,7 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
         try {
             if (message instanceof Request) {
+                /** 处理客户端的请求 */
                 // handle request.
                 Request request = (Request) message;
                 if (request.isEvent()) {

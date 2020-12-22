@@ -78,7 +78,7 @@ public class DubboProtocol extends AbstractProtocol {
             // 回应客户端的请求，所以必须是Invocation类型
             if (message instanceof Invocation) {
                 Invocation inv = (Invocation) message;
-                // 获取服务端的proxy代理对象
+                /** 获取服务端的proxy代理对象 */
                 Invoker<?> invoker = getInvoker(channel, inv);
                 // need to consider backward-compatibility if it's a callback
                 if (Boolean.TRUE.toString().equals(inv.getAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
@@ -236,6 +236,7 @@ public class DubboProtocol extends AbstractProtocol {
         // export service.
         String key = serviceKey(url);
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
+        /** 将 invoker 放到 map 中，等待客户端的远程调用 */
         exporterMap.put(key, exporter);
 
         //export an stub service for dispatching event
@@ -253,6 +254,7 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        /** 底层通信模块，绑定到指定端口上(默认20880)，等待客户端的连接 */
         openServer(url);
         optimizeSerialization(url);
         return exporter;
@@ -266,6 +268,7 @@ public class DubboProtocol extends AbstractProtocol {
         if (isServer) {
             ExchangeServer server = serverMap.get(key);
             if (server == null) {
+                // 服务端通信启动
                 serverMap.put(key, createServer(url));
             } else {
                 // server supports reset, use together with override
@@ -287,6 +290,7 @@ public class DubboProtocol extends AbstractProtocol {
         url = url.addParameter(Constants.CODEC_KEY, DubboCodec.NAME);
         ExchangeServer server;
         try {
+            /** 绑定，这里传入 handler，用于处理 netty 收到请求后的业务逻辑处理 */
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
@@ -339,6 +343,7 @@ public class DubboProtocol extends AbstractProtocol {
     public <T> Invoker<T> refer(Class<T> serviceType, URL url) throws RpcException {
         optimizeSerialization(url);
         // create rpc invoker.
+        // 内部会建立 tcp 连接
         DubboInvoker<T> invoker = new DubboInvoker<T>(serviceType, url, getClients(url), invokers);
         invokers.add(invoker);
         return invoker;

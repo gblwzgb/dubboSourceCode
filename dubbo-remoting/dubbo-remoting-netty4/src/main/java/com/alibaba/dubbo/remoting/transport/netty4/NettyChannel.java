@@ -39,6 +39,8 @@ final class NettyChannel extends AbstractChannel {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyChannel.class);
 
+    // （netty 框架的 channel） -> NettyChannel
+    // 被多个 NettyChannel 全局共享
     private static final ConcurrentMap<Channel, NettyChannel> channelMap = new ConcurrentHashMap<Channel, NettyChannel>();
 
     // netty的channel

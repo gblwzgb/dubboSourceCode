@@ -83,7 +83,7 @@ public class StaticDirectory<T> extends AbstractDirectory<T> {
 
     @Override
     protected List<Invoker<T>> doList(Invocation invocation) throws RpcException {
-
+        // 静态目录不会变动，所以直接返回就行了，不像注册中心目录那么复杂
         return invokers;
     }
 

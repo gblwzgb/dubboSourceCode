@@ -45,6 +45,7 @@ public class UrlUtils {
                     }
                     backup.append(addresses[i]);
                 }
+                /** 多出来的地址作为备用地址？ */
                 url += "?" + Constants.BACKUP_KEY + "=" + backup.toString();
             }
         }

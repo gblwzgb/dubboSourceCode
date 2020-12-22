@@ -25,6 +25,7 @@ import com.alibaba.dubbo.remoting.transport.ChannelHandlerDispatcher;
 /**
  * Transporter facade. (API, Static, ThreadSafe)
  */
+// Transporter 的门面类，工具类。
 public class Transporters {
 
     static {

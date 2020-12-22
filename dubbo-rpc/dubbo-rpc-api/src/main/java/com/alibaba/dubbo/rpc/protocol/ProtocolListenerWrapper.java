@@ -33,6 +33,7 @@ import java.util.Collections;
 /**
  * ListenerProtocol
  */
+// 这个 Listener 会在 ExtensionLoader#loadClass 中，被当做 wrapper 类，然后增强到实际的类上。
 public class ProtocolListenerWrapper implements Protocol {
 
     private final Protocol protocol;

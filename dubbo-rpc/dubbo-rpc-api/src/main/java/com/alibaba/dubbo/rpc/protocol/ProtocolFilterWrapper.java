@@ -32,6 +32,7 @@ import java.util.List;
 /**
  * ListenerProtocol
  */
+// 这个 Filter 会在 ExtensionLoader#loadClass 中，被当做 wrapper 类，然后增强到实际的类上。
 public class ProtocolFilterWrapper implements Protocol {
 
     private final Protocol protocol;

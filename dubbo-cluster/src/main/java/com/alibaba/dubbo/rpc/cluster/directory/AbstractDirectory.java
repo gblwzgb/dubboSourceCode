@@ -72,8 +72,10 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         if (destroyed) {
             throw new RpcException("Directory already destroyed .url: " + getUrl());
         }
+        /** 从目录中获取可用的服务端 Invoker 列表 */
         List<Invoker<T>> invokers = doList(invocation);
         List<Router> localRouters = this.routers; // local reference
+        /** 路由到满足一定条件的 invoker（有点像 filter） */
         if (localRouters != null && !localRouters.isEmpty()) {
             for (Router router : localRouters) {
                 try {

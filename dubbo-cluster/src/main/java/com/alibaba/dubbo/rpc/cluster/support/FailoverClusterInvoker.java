@@ -41,7 +41,7 @@ import java.util.Set;
  * <a href="http://en.wikipedia.org/wiki/Failover">Failover</a>
  *
  */
-// 故障转移
+// 故障转移，请求失败以后通过重试次数来重试。
 public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(FailoverClusterInvoker.class);

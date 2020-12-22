@@ -49,6 +49,7 @@ public class NettyClient extends AbstractClient {
 
     private Bootstrap bootstrap;
 
+    // Netty 的 channel
     private volatile Channel channel; // volatile, please copy reference to use
 
     public NettyClient(final URL url, final ChannelHandler handler) throws RemotingException {
@@ -153,6 +154,7 @@ public class NettyClient extends AbstractClient {
         //nioEventLoopGroup.shutdownGracefully();
     }
 
+    // AbstractClient 需要使用封装过的 Channel，不能直接把 netty 的 Channel 返回
     @Override
     protected com.alibaba.dubbo.remoting.Channel getChannel() {
         Channel c = channel;

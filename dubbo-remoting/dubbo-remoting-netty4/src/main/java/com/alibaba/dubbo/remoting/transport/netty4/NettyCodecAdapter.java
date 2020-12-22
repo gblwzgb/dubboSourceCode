@@ -87,6 +87,15 @@ final class NettyCodecAdapter {
 
             int saveReaderIndex;
 
+            /**
+             * 分析：
+             * 一：不足一个包，此时 msg 会返回NEED_MORE_INPUT，然后break，ByteToMessageDecoder发现没解码成功，会等待下一次 socket 读，然后把两次 socket 读的数据拼接在一起。
+             * 二：刚好一个包，皆大欢喜，没什么好说的。
+             * 三：一个包 + 半包
+             *      - 3.1 dubbo解析出一个包，放入out数组中，再解析时发现半包了，break。
+             *      - 3.2 ByteToMessageDecoder将out中的msg传给下一个 handler，然后再给 dubbo，后面流程就和case一是一样的了。
+             *
+             */
             try {
                 // decode object.
                 do {
@@ -97,6 +106,8 @@ final class NettyCodecAdapter {
                         throw e;
                     }
                     if (msg == Codec2.DecodeResult.NEED_MORE_INPUT) {
+                        // 数据包不完整，指针回退到读之前的位置
+                        // 这里读的包不完整，没关系，ByteToMessageDecoder 的 CUMULATOR 会进行累积。
                         message.readerIndex(saveReaderIndex);
                         break;
                     } else {

@@ -79,11 +79,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
     private final List<URL> urls = new ArrayList<URL>();
+    // 记录暴露的服务，后续用于 unexport
     private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
     // interface type
     private String interfaceName;
     private Class<?> interfaceClass;
     // reference to interface impl
+    // 真实的用户接口实现
     private T ref;
     // service name
     private String path;
@@ -355,6 +357,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
+        // 加载注册中心的地址
         List<URL> registryURLs = loadRegistries(true);
         for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
@@ -368,12 +371,13 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         Map<String, String> map = new HashMap<String, String>();
-        map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
-        map.put(Constants.DUBBO_VERSION_KEY, Version.getProtocolVersion());
-        map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
+        map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);  // 设置服务端标识
+        map.put(Constants.DUBBO_VERSION_KEY, Version.getProtocolVersion());  // 设置 dubbo 版本号
+        map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));  // 设置时间戳
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
+        // 属性附加
         appendParameters(map, application);
         appendParameters(map, module);
         appendParameters(map, provider, Constants.DEFAULT_KEY);
@@ -485,14 +489,17 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
             // export to local if the config is not remote (export to remote only when config is remote)
             if (!Constants.SCOPE_REMOTE.toString().equalsIgnoreCase(scope)) {
+                // 默认会暴露一个服务到本地，这样自己就可以调用自己了
                 exportLocal(url);
             }
             // export to remote if the config is not local (export to local only when config is local)
             if (!Constants.SCOPE_LOCAL.toString().equalsIgnoreCase(scope)) {
+                // 暴露到远程
                 if (logger.isInfoEnabled()) {
                     logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
                 }
-                if (registryURLs != null && !registryURLs.isEmpty()) {
+                if (registryURLs != null && !registryURLs.isEmpty()) {  // 注册地址有配置，且注册开关打开了（默认开的）
+                    // 遍历注册
                     for (URL registryURL : registryURLs) {
                         url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));
                         URL monitorUrl = loadMonitor(registryURL);
@@ -509,16 +516,22 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                             registryURL = registryURL.addParameter(Constants.PROXY_KEY, proxy);
                         }
 
+                        // 将真实的接口实现，封装成 Invoker。这里看到 dubbo 的 URL 做为属性（key = export），附加在了注册到注册中心的 registryURL 上
+                        // 将在 RegistryProtocol#getProviderUrl，反推出 dubbo 的 URL 去执行本地暴露
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
+                        // 再封装一层。
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+                        // 这里的 protocol 是 SPI 生成的类，会根据 URL 里的参数，动态选择实现类。这里最后会进入 RegistryProtocol
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
                 } else {
+                    // 这里的 URL 中的 protocol 是 dubbo，所以下面会进入 DubboProtocol。和上面的 if 不同，这里入参是 url，上面的入参是 registryURL
                     Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
                     DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+                    // 这里的 protocol 是 SPI 生成的类，会根据 URL 里的参数，动态选择实现类。这里最后会进入 DubboProtocol
                     Exporter<?> exporter = protocol.export(wrapperInvoker);
                     exporters.add(exporter);
                 }
