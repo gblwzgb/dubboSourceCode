@@ -126,6 +126,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
     }
 
+    // 订阅的时候，注册一个回调上去，回调里通知 Registry。
     @Override
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
@@ -185,6 +186,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     zkClient.create(path, false);
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
+                        // 如果获取到了子节点。
                         urls.addAll(toUrlsWithEmpty(url, path, children));
                     }
                 }

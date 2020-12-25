@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
  * <a href="http://en.wikipedia.org/wiki/Failback">Failback</a>
  *
  */
+// 提供了调用失败重试的机制
 public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(FailbackClusterInvoker.class);

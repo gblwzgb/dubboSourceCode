@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit;
  * FailbackRegistry. (SPI, Prototype, ThreadSafe)
  *
  */
+// 提供了失败重试机制（Failback）！
+// 注册、注销、订阅、取消订阅、通知的时候失败了，则加入到相应的缓存中，等待定时器的重试
 public abstract class FailbackRegistry extends AbstractRegistry {
 
     // Scheduled executor service
@@ -61,6 +63,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     /**
      * The time in milliseconds the retryExecutor will wait
      */
+    // 默认5秒。
     private final int retryPeriod;
 
     public FailbackRegistry(URL url) {
@@ -191,7 +194,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
     public void subscribe(URL url, NotifyListener listener) {
         // 添加订阅到父类的缓存中
         super.subscribe(url, listener);
-        // 移除失败的订阅
+        // 移除失败的订阅，如果有的话。
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side

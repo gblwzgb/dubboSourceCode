@@ -44,7 +44,7 @@ import static com.alibaba.dubbo.rpc.protocol.dubbo.CallbackServiceCodec.encodeIn
  * Dubbo codec.
  */
 
-
+// 在 com.alibaba.dubbo.rpc.protocol.dubbo.DubboProtocol.initClient 中可以看到指定了 DubboCodec 作为编解码器
 public class DubboCodec extends ExchangeCodec implements Codec2 {
 
     public static final String NAME = "dubbo";
@@ -84,12 +84,13 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
                         data = decodeEventData(channel,  CodecSupport.deserialize(channel.getUrl(), is, proto));
                     } else {
                         DecodeableRpcResult result;
+                        // 默认反序列化，这里不反序列化的话，也会在 DecodeHandler 中反序列化。
                         if (channel.getUrl().getParameter(
                                 Constants.DECODE_IN_IO_THREAD_KEY,
                                 Constants.DEFAULT_DECODE_IN_IO_THREAD)) {
                             result = new DecodeableRpcResult(channel, res, is,
                                     (Invocation) getRequestData(id), proto);  // 获取reqId获取response对应的request
-                            // 解码数据包
+                            /** 反序列化对象 */
                             result.decode();
                         } else {
                             result = new DecodeableRpcResult(channel, res,

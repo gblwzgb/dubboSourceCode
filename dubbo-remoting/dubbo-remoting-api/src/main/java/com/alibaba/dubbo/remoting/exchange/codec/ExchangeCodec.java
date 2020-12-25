@@ -75,6 +75,7 @@ import java.io.InputStream;
  * 32 ~ 95	请求编号	共8字节，运行时生成
  * 96 ~ 127	消息体长度	运行时计算
  */
+// 数据的传输格式。
 public class ExchangeCodec extends TelnetCodec {
 
     // header length.

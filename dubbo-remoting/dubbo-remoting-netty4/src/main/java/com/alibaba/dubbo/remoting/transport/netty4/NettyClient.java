@@ -58,6 +58,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     protected void doOpen() throws Throwable {
+        /** 构造方法中，一路把 ChannelHandler 传递到了 AbstractPeer 中，然后收到请求的时候，会调用这个 ChannelHandler*/
         final NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), this);
         bootstrap = new Bootstrap();
         bootstrap.group(nioEventLoopGroup)

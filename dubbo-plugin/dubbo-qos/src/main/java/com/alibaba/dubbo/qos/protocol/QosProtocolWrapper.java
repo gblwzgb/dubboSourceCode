@@ -33,6 +33,7 @@ import static com.alibaba.dubbo.common.Constants.QOS_ENABLE;
 import static com.alibaba.dubbo.common.Constants.QOS_PORT;
 import static com.alibaba.dubbo.qos.common.QosConstants.DEFAULT_PORT;
 
+// （Quality of Service，服务质量）
 public class QosProtocolWrapper implements Protocol {
 
     private final Logger logger = LoggerFactory.getLogger(QosProtocolWrapper.class);
@@ -56,6 +57,7 @@ public class QosProtocolWrapper implements Protocol {
     @Override
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         if (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) {
+            // 监控服务质量
             startQosServer(invoker.getUrl());
             return protocol.export(invoker);
         }

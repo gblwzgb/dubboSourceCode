@@ -82,9 +82,9 @@ public class DecodeableRpcResult extends RpcResult implements Codec, Decodeable 
                 break;
             case DubboCodec.RESPONSE_VALUE:
                 try {
-                    // 获取返回值
+                    // 通过反射，从接口方法上获取到返回类型
                     Type[] returnType = RpcUtils.getReturnTypes(invocation);
-                    // 设置对象
+                    // 使用编解码器还原对象，并设置值
                     setValue(returnType == null || returnType.length == 0 ? in.readObject() :
                             (returnType.length == 1 ? in.readObject((Class<?>) returnType[0])
                                     : in.readObject((Class<?>) returnType[0], returnType[1])));
@@ -140,6 +140,8 @@ public class DecodeableRpcResult extends RpcResult implements Codec, Decodeable 
         return this;
     }
 
+    // 这个在 DubboCodec 中直接解码掉了！！！有个 decode.in.io 参数控制，默认true。
+    // 难怪断点调试的时候，DecodeHandler 进来以后，直接if都没进。。
     @Override
     public void decode() throws Exception {
         if (!hasDecoded && channel != null && inputStream != null) {
