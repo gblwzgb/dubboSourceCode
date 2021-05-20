@@ -35,9 +35,10 @@ import java.util.concurrent.ConcurrentMap;
  * ConsistentHashLoadBalance
  *
  */
-// 一致性hash算法
+// 一致性hash算法，相同参数的请求总是发到同一提供者。
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
 
+    // 每个接口方法，对应一个 ConsistentHashSelector
     private final ConcurrentMap<String, ConsistentHashSelector<?>> selectors = new ConcurrentHashMap<String, ConsistentHashSelector<?>>();
 
     @SuppressWarnings("unchecked")
@@ -45,9 +46,11 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
         String methodName = RpcUtils.getMethodName(invocation);
         String key = invokers.get(0).getUrl().getServiceKey() + "." + methodName;
+        // 唯一的 hashCode
         int identityHashCode = System.identityHashCode(invokers);
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
         if (selector == null || selector.identityHashCode != identityHashCode) {
+            // ConsistentHashSelector 不存在或者 Invoker 列表改变了，则新搞一个 ConsistentHashSelector
             selectors.put(key, new ConsistentHashSelector<T>(invokers, methodName, identityHashCode));
             selector = (ConsistentHashSelector<T>) selectors.get(key);
         }
@@ -68,7 +71,9 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
             this.virtualInvokers = new TreeMap<Long, Invoker<T>>();
             this.identityHashCode = identityHashCode;
             URL url = invokers.get(0).getUrl();
+            // 缺省用 160 份虚拟节点（每个 Invoker 各有160个虚拟节点）
             this.replicaNumber = url.getMethodParameter(methodName, "hash.nodes", 160);
+            // 缺省只对第一个参数 Hash
             String[] index = Constants.COMMA_SPLIT_PATTERN.split(url.getMethodParameter(methodName, "hash.arguments", "0"));
             argumentIndex = new int[index.length];
             for (int i = 0; i < index.length; i++) {
@@ -103,6 +108,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         }
 
         private Invoker<T> selectForKey(long hash) {
+            // tailMap 返回一个视图
             Map.Entry<Long, Invoker<T>> entry = virtualInvokers.tailMap(hash, true).firstEntry();
             if (entry == null) {
                 entry = virtualInvokers.firstEntry();

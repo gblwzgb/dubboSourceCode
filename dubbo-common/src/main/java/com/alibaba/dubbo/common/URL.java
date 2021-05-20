@@ -68,7 +68,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see java.net.URL
  * @see java.net.URI
  */
-// 非常核心的一个类
+// 非常核心的一个类（不可变，线程安全）
+
+/**
+ * URL转成字符串后差不多是这样的
+ * dubbo://192.168.100.188:20880/com.ggj.platform.promotion.api.coupon.CouponAPI?anyhost=true&application=promotion-platform&default.delay=-1&default.retries=0&default.service.filter=gsfMonitor,-monitor&default.threads=600&default.timeout=5000&delay=-1&dubbo=2.6.2&generic=false&interface=com.ggj.platform.promotion.api.coupon.CouponAPI&methods=getCouponById,getCouponStock,createInvestmentCoupon,batchSendCoupon,getCouponByActivityIds,sendCoupons,receiveCouponPackage,batchQueryCouponByIds,listCouponRequest,sendCouponPackage,receiveCoupon,sendBizCoupons,listCouponByIds,invalidInvestmentCoupon,sendCouponSingle&owner=bujiu&pid=10898&side=provider&timeout=5000&timestamp=1608794472124
+ *
+ * 每次加新的参数，都生成一个新的 URL，猜测是为了不可变、线程安全。
+ */
 public final class URL implements Serializable {
 
     private static final long serialVersionUID = -1985165475234910535L;
@@ -1128,10 +1135,12 @@ public final class URL implements Serializable {
         return buf.toString();
     }
 
+    // 拼接参数
     private void buildParameters(StringBuilder buf, boolean concat, String[] parameters) {
         if (getParameters() != null && getParameters().size() > 0) {
             List<String> includes = (parameters == null || parameters.length == 0 ? null : Arrays.asList(parameters));
             boolean first = true;
+            // todo：这里为什么要转成 TreeMap？
             for (Map.Entry<String, String> entry : new TreeMap<String, String>(getParameters()).entrySet()) {
                 if (entry.getKey() != null && entry.getKey().length() > 0
                         && (includes == null || includes.contains(entry.getKey()))) {
@@ -1157,10 +1166,13 @@ public final class URL implements Serializable {
 
     private String buildString(boolean appendUser, boolean appendParameter, boolean useIP, boolean useService, String... parameters) {
         StringBuilder buf = new StringBuilder();
+        // 协议必拼
         if (protocol != null && protocol.length() > 0) {
             buf.append(protocol);
             buf.append("://");
         }
+
+        // 选择性拼接用户名：密码
         if (appendUser && username != null && username.length() > 0) {
             buf.append(username);
             if (password != null && password.length() > 0) {
@@ -1169,12 +1181,14 @@ public final class URL implements Serializable {
             }
             buf.append("@");
         }
+        // 拼接host
         String host;
         if (useIP) {
             host = getIp();
         } else {
             host = getHost();
         }
+        // 拼接port
         if (host != null && host.length() > 0) {
             buf.append(host);
             if (port > 0) {
@@ -1182,6 +1196,7 @@ public final class URL implements Serializable {
                 buf.append(port);
             }
         }
+        // 拼接path，在dubbo中就是接口的全限定名
         String path;
         if (useService) {
             path = getServiceKey();
@@ -1192,6 +1207,7 @@ public final class URL implements Serializable {
             buf.append("/");
             buf.append(path);
         }
+        // 拼接参数
         if (appendParameter) {
             buildParameters(buf, true, parameters);
         }
